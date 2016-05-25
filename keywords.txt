@@ -1,0 +1,25 @@
+###################################
+# Syntax Coloring Map For SMT172
+###################################
+
+###################################
+# Datatypes (KEYWORD1)
+###################################
+
+SMT172	KEYWORD1
+
+###################################
+# Methods and Functions (KEYWORD2)
+###################################
+
+startTemperature	KEYWORD2
+getStatus	KEYWORD2
+getTemperature	KEYWORD2
+getError	KEYWORD2
+getFrequency	KEYWORD2
+getDutyCycle	KEYWORD2
+getTime	KEYWORD2
+
+###################################
+# Constants (LITERAL1)
+###################################
