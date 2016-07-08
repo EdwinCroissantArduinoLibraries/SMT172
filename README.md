@@ -9,10 +9,10 @@ the resolution up to 0.001 degree Celsius.
 With a 16MHz CPU and a conversion time of 30 ms a resolution of about
 0.01 degree Celsius can be reached.
 
-This library uses Timer1 and ICP1. The library can be adapted to use
-different 16 bit timers if available.
+This library uses Timer1, Timer4 or Timer5 and ICP1, ICP4 or ICP5. 
 
 The SMT172 needs a clean powersupply (a 100uF capacitor with a 100 nF ceramic
-capacitorin parallel fed through a small signal diode), a 220 ohm resistor in
-series and a 100nF ceramic capacitor as close to the sensor as possible. 
+capacitor in parallel fed through a small signal diode), a 220 ohm resistor in
+series and a 100nF ceramic capacitor as close to the sensor as possible.
+See also the diagram in the extras folder.
 

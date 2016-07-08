@@ -7,6 +7,8 @@
 ###################################
 
 SMT172	KEYWORD1
+SMT172_T4	KEYWORD1
+SMT172_T5	KEYWORD1
 
 ###################################
 # Methods and Functions (KEYWORD2)
