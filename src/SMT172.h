@@ -34,6 +34,7 @@
 
  SYNTAX:
  startTemperature(float sensorError);
+	 initialize timer to measure the duty cycle at the Input Capture Pin
 	 the minimum required clock cycles is calculated on the fly for the required
 	 standard deviation of the sampling noise after the first complete cycle of the sensor.
  uint8_t getStatus();
