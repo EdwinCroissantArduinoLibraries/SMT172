@@ -7,6 +7,8 @@
  ---------------------------------------------------------------------------
  */
 
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+
 #ifndef SMT172_T5_h
 #define SMT172_T5_h
 
@@ -35,3 +37,7 @@ float getTime(void);
 }
 
 #endif	
+
+#else
+#error not a suitable ATmega microcontroller...
+#endif
