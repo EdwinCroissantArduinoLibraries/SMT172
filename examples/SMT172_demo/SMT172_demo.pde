@@ -2,9 +2,6 @@
  Demo sketch for the SMT172 library. 
  This sketch is intended for the ATmega328P (Uno, Nano, Pro Mini etc.)
  There is no timer2 on the ATmega32U4 (Pro Micro)
- The ICP1 pin is not exposed on the Mega2560R3 board so timer4 or timer5 must be
- used requiring a modification of the SMT172 library. This board also uses
- different pins for timer2.
  This sketch will output to serial.
  Connect the output of the SMT172 to pin 8 (Input Capture Pin of timer 1)
  Timer 2 is set up in phase correct PWM and output a duty cycle of

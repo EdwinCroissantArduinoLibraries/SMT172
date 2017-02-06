@@ -1,22 +1,28 @@
-// ---------------------------------------------------------------------------
-// Created by Edwin Croissant
-// Copyright 2016 License: GNU GPL v3 http://www.gnu.org/licenses/gpl-3.0.html
-//
-// See "SMT172_T5.h" for purpose, syntax, version history, links, and more.
-// ---------------------------------------------------------------------------
+/*
+ ---------------------------------------------------------------------------
+ Created by Edwin Croissant
+ Copyright 2016 License: GNU GPL v3 http://www.gnu.org/licenses/gpl-3.0.html
+
+ See "SMT172.h" for purpose, syntax, version history, links, and more.
+ ---------------------------------------------------------------------------
+*/
+
+// prevent the file to be included for microcontrollers that have no timer 5
+
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 
 #include <SMT172_T5.h>
 
 namespace {
-volatile uint16_t sensorCycleCount;
-volatile uint8_t status; // 0 = busy, 1 = success, 2 = not connected
-volatile uint16_t overflowCount;
-volatile uint32_t startCycle;
-volatile uint32_t tempCycle;
-volatile uint32_t endCycle;
-volatile uint32_t highCycles;
-volatile uint32_t minClockCycles;
-volatile float interimSensorError;
+	volatile uint16_t sensorCycleCount;
+	volatile uint8_t status; // 0 = busy, 1 = success, 2 = not connected
+	volatile uint16_t overflowCount;
+	volatile uint32_t startCycle;
+	volatile uint32_t tempCycle;
+	volatile uint32_t endCycle;
+	volatile uint32_t highCycles;
+	volatile uint32_t minClockCycles;
+	volatile float interimSensorError;
 }
 
 // timer overflows every 65536 counts
@@ -27,7 +33,7 @@ ISR (TIMER5_OVF_vect) {
 //	Frequency is lower then 400 Hz. Disconnected sensor?
 ISR (TIMER5_COMPA_vect) {
 	TIMSK5 = 0;    // no more interrupts for now from timer 5
-	TIFR5 = _BV(ICF5) | _BV(TOV5) | _BV(OCF5A); // clear pending interrupts as we are done
+	TIFR5 = _BV(ICF5) | _BV(TOV5) | _BV(OCF5A);// clear pending interrupts as we are done
 	status = 2;
 }	// end of TIMER5_COMPA_vect
 
@@ -38,37 +44,37 @@ ISR (TIMER5_CAPT_vect) {
 			uint16_t counter;
 			uint16_t overflow;
 		};
-	} cycle;
+	}cycle;
 
 	//  See "Using the Input Capture Unit" in the Atmel documentation
 	cycle.counter = ICR5;//	The ICR5 Register should be read as early in the interrupt handler routine as possible.
 	TCCR5B ^= _BV(ICES5);//	Toggle Input Capture Edge Select directly after ICR5 is read
-	TIFR5 |= _BV(ICF5);		//	Clear ICF5 directly after edge direction change
+	TIFR5 |= _BV(ICF5);//	Clear ICF5 directly after edge direction change
 
 	//	The Input capture interrupt priority is higher then the overflow interrupt. So it is possible
 	//	that the overflow interrupt is still pending to be processed. If an overflow is just missed then
 	//	synchronize cycle.overflow with overflowCount, the latter will be processed later by the overflow interrupt
 	cycle.overflow = overflowCount;
 	if ((TIFR5 & _BV(TOV5)) && cycle.counter < 0x7FFF)
-		cycle.overflow++;
+	cycle.overflow++;
 
-	if (TCCR5B & _BV(ICES5)) // test if ICES5 is raising as SMT172 datasheet dictates starting with falling edge
+	if (TCCR5B & _BV(ICES5))// test if ICES5 is raising as SMT172 datasheet dictates starting with falling edge
 	{						 // note that ICES5 is already toggled
 		switch (sensorCycleCount) {
-		case 0:
+			case 0:
 			startCycle = cycle.stamp;
 			break;
-		case 1:
+			case 1:
 			highCycles += cycle.stamp - tempCycle;
 			minClockCycles = interimSensorError / (cycle.stamp - startCycle);
 			break;
-		default:
+			default:
 			highCycles += cycle.stamp - tempCycle;
 			if (((sensorCycleCount) % 8 == 0) // measure a multiple of 8 sensor cycles
-			&& ((cycle.stamp - startCycle) >= minClockCycles)) {
+					&& ((cycle.stamp - startCycle) >= minClockCycles)) {
 				endCycle = cycle.stamp;
 				TIMSK5 = 0;    // no more interrupts for now from timer 1
-				TIFR5 = _BV(ICF5) | _BV(TOV5) | _BV(OCF5A); // clear pending interrupts as we are done
+				TIFR5 = _BV(ICF5) | _BV(TOV5) | _BV(OCF5A);// clear pending interrupts as we are done
 				status = 1;
 				return;
 			};
@@ -76,7 +82,7 @@ ISR (TIMER5_CAPT_vect) {
 		sensorCycleCount++;
 	} else {
 		// this is executed at the raising edge
-		OCR5A = cycle.counter + (F_CPU / 400); // advance the output compare register
+		OCR5A = cycle.counter + (F_CPU / 400);// advance the output compare register
 		tempCycle = cycle.stamp;
 	}
 }  // end of TIMER5_CAPT_vect
@@ -86,7 +92,7 @@ void SMT172_T5::startTemperature(float sensorError) {
 
 	interimSensorError = 20000 / 3 / pow(sensorError,2);
 
-	status = 0;  // measuring duty cycle
+	status = 0;// measuring duty cycle
 	sensorCycleCount = 0;
 	highCycles = 0;
 	overflowCount = 0;
@@ -94,13 +100,13 @@ void SMT172_T5::startTemperature(float sensorError) {
 	// reset timer 5
 	TCCR5A = 0;
 	TCCR5B = 0;
-	TCNT5 = 0;          // Timer/Counter to zero
+	TCNT5 = 0;// Timer/Counter to zero
 
 	// Set up Timer 5
-	OCR5A = (F_CPU / 400); // ~ 400 Hz minimum frequency
-	TCCR5B = _BV(CS50) | _BV(ICES5); // start Timer 5, no prescaler and Input Capture Edge Select rising
-	TIFR5 = _BV(ICF5) | _BV(TOV5) | _BV(OCF5A); // clear pending interrupts so we don't get a bogus one
-	TIMSK5 = _BV(ICIE5) | _BV(TOIE5)| _BV(OCIE5A); // and enable interrupt on Timer 5 input capture, overflow and compare A
+	OCR5A = (F_CPU / 400);// ~ 400 Hz minimum frequency
+	TCCR5B = _BV(CS50) | _BV(ICES5);// start Timer 5, no prescaler and Input Capture Edge Select rising
+	TIFR5 = _BV(ICF5) | _BV(TOV5) | _BV(OCF5A);// clear pending interrupts so we don't get a bogus one
+	TIMSK5 = _BV(ICIE5) | _BV(TOIE5)| _BV(OCIE5A);// and enable interrupt on Timer 5 input capture, overflow and compare A
 
 }  // end of startTemperature
 
@@ -137,3 +143,5 @@ float SMT172_T5::getTime(void) {
 	// return the measuring time in seconds
 	return float(endCycle - startCycle) / float(F_CPU);
 }
+
+#endif

@@ -1,9 +1,11 @@
-// ---------------------------------------------------------------------------
-// Created by Edwin Croissant
-// Copyright 2016 License: GNU GPL v3 http://www.gnu.org/licenses/gpl-3.0.html
-//
-// See "SMT172.h" for purpose, syntax, version history, links, and more.
-// ---------------------------------------------------------------------------
+/*
+ ---------------------------------------------------------------------------
+ Created by Edwin Croissant
+ Copyright 2016 License: GNU GPL v3 http://www.gnu.org/licenses/gpl-3.0.html
+
+ See "SMT172.h" for purpose, syntax, version history, links, and more.
+ ---------------------------------------------------------------------------
+*/
 
 #include <SMT172.h>
 

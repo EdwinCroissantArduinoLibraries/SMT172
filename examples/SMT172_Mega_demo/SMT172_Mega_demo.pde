@@ -1,11 +1,11 @@
 /*
  Demo sketch for the SMT172 library. 
- This sketch is intended for the ATmega2660
+ This sketch is intended for the ATmega2560
  The ICP1 pin is not exposed on the Mega2560R3 board so timer4 or timer5 must be
  used.
  This sketch will output to serial.
- Connect the output of the SMT172 to pin 49 (Input Capture Pin of timer 4)
- Connect the output of the SMT172 to pin 48 (Input Capture Pin of timer 5)
+ Connect the output of a SMT172 to pin 49 (Input Capture Pin of timer 4)
+ Connect the output of a SMT172 to pin 48 (Input Capture Pin of timer 5)
  Timer 2 is set up in phase correct PWM and output a duty cycle of
  10.98% ~-45.06 C on pin 9 and a duty cycle of 92.94% ~139.58 C on pin 10
  Connect pin 48 or pin 49 to pin 9 or pin 10 to check the working if no SMT172 is available

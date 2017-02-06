@@ -1,4 +1,4 @@
-# SMT172-Library
+# SMT172-Library for the ATmega microcontroller family 
 The SMT172 is a ultra-low power, high accuracy temperature sensor. The output
 signal is pulse width modulated (PWM) and the duty cycle is a function of
 the measured temperature. For more details see the home page of the

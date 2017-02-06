@@ -1,22 +1,28 @@
-// ---------------------------------------------------------------------------
-// Created by Edwin Croissant
-// Copyright 2016 License: GNU GPL v3 http://www.gnu.org/licenses/gpl-3.0.html
-//
-// See "SMT172_T4.h" for purpose, syntax, version history, links, and more.
-// ---------------------------------------------------------------------------
+/*
+ ---------------------------------------------------------------------------
+ Created by Edwin Croissant
+ Copyright 2016 License: GNU GPL v3 http://www.gnu.org/licenses/gpl-3.0.html
+
+ See "SMT172.h" for purpose, syntax, version history, links, and more.
+ ---------------------------------------------------------------------------
+*/
+
+// prevent the file to be included for microcontrollers that have no timer 4
+
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 
 #include <SMT172_T4.h>
 
 namespace {
-volatile uint16_t sensorCycleCount;
-volatile uint8_t status; // 0 = busy, 1 = success, 2 = not connected
-volatile uint16_t overflowCount;
-volatile uint32_t startCycle;
-volatile uint32_t tempCycle;
-volatile uint32_t endCycle;
-volatile uint32_t highCycles;
-volatile uint32_t minClockCycles;
-volatile float interimSensorError;
+	volatile uint16_t sensorCycleCount;
+	volatile uint8_t status; // 0 = busy, 1 = success, 2 = not connected
+	volatile uint16_t overflowCount;
+	volatile uint32_t startCycle;
+	volatile uint32_t tempCycle;
+	volatile uint32_t endCycle;
+	volatile uint32_t highCycles;
+	volatile uint32_t minClockCycles;
+	volatile float interimSensorError;
 }
 
 // timer overflows every 65536 counts
@@ -27,7 +33,7 @@ ISR (TIMER4_OVF_vect) {
 //	Frequency is lower then 400 Hz. Disconnected sensor?
 ISR (TIMER4_COMPA_vect) {
 	TIMSK4 = 0;    // no more interrupts for now from timer 4
-	TIFR1 = _BV(ICF4) | _BV(TOV4) | _BV(OCF4A); // clear pending interrupts as we are done
+	TIFR1 = _BV(ICF4) | _BV(TOV4) | _BV(OCF4A);// clear pending interrupts as we are done
 	status = 2;
 }	// end of TIMER4_COMPA_vect
 
@@ -38,37 +44,37 @@ ISR (TIMER4_CAPT_vect) {
 			uint16_t counter;
 			uint16_t overflow;
 		};
-	} cycle;
+	}cycle;
 
 	//  See "Using the Input Capture Unit" in the Atmel documentation
 	cycle.counter = ICR4;//	The ICR1 Register should be read as early in the interrupt handler routine as possible.
 	TCCR4B ^= _BV(ICES4);//	Toggle Input Capture Edge Select directly after ICR4 is read
-	TIFR4 |= _BV(ICF4);		//	Clear ICF1 directly after edge direction change
+	TIFR4 |= _BV(ICF4);//	Clear ICF1 directly after edge direction change
 
 	//	The Input capture interrupt priority is higher then the overflow interrupt. So it is possible
 	//	that the overflow interrupt is still pending to be processed. If an overflow is just missed then
 	//	synchronize cycle.overflow with overflowCount, the latter will be processed later by the overflow interrupt
 	cycle.overflow = overflowCount;
 	if ((TIFR4 & _BV(TOV4)) && cycle.counter < 0x7FFF)
-		cycle.overflow++;
+	cycle.overflow++;
 
-	if (TCCR4B & _BV(ICES4)) // test if ICES4 is raising as SMT172 datasheet dictates starting with falling edge
+	if (TCCR4B & _BV(ICES4))// test if ICES4 is raising as SMT172 datasheet dictates starting with falling edge
 	{						 // note that ICES4 is already toggled
 		switch (sensorCycleCount) {
-		case 0:
+			case 0:
 			startCycle = cycle.stamp;
 			break;
-		case 1:
+			case 1:
 			highCycles += cycle.stamp - tempCycle;
 			minClockCycles = interimSensorError / (cycle.stamp - startCycle);
 			break;
-		default:
+			default:
 			highCycles += cycle.stamp - tempCycle;
 			if (((sensorCycleCount) % 8 == 0) // measure a multiple of 8 sensor cycles
-			&& ((cycle.stamp - startCycle) >= minClockCycles)) {
+					&& ((cycle.stamp - startCycle) >= minClockCycles)) {
 				endCycle = cycle.stamp;
 				TIMSK4 = 0;    // no more interrupts for now from timer 4
-				TIFR4 = _BV(ICF4) | _BV(TOV4) | _BV(OCF4A); // clear pending interrupts as we are done
+				TIFR4 = _BV(ICF4) | _BV(TOV4) | _BV(OCF4A);// clear pending interrupts as we are done
 				status = 1;
 				return;
 			};
@@ -76,7 +82,7 @@ ISR (TIMER4_CAPT_vect) {
 		sensorCycleCount++;
 	} else {
 		// this is executed at the raising edge
-		OCR4A = cycle.counter + (F_CPU / 400); // advance the output compare register
+		OCR4A = cycle.counter + (F_CPU / 400);// advance the output compare register
 		tempCycle = cycle.stamp;
 	}
 }  // end of TIMER4_CAPT_vect
@@ -86,7 +92,7 @@ void SMT172_T4::startTemperature(float sensorError) {
 
 	interimSensorError = 20000 / 3 / pow(sensorError,2);
 
-	status = 0;  // measuring duty cycle
+	status = 0;// measuring duty cycle
 	sensorCycleCount = 0;
 	highCycles = 0;
 	overflowCount = 0;
@@ -94,13 +100,13 @@ void SMT172_T4::startTemperature(float sensorError) {
 	// reset timer 4
 	TCCR4A = 0;
 	TCCR4B = 0;
-	TCNT4 = 0;          // Timer/Counter to zero
+	TCNT4 = 0;// Timer/Counter to zero
 
 	// Set up Timer 1
-	OCR4A = (F_CPU / 400); // ~ 400 Hz minimum frequency
-	TCCR4B = _BV(CS40) | _BV(ICES4); // start Timer 4, no prescaler and Input Capture Edge Select rising
-	TIFR4 = _BV(ICF4) | _BV(TOV4) | _BV(OCF4A); // clear pending interrupts so we don't get a bogus one
-	TIMSK4 = _BV(ICIE4) | _BV(TOIE4)| _BV(OCIE4A); // and enable interrupt on Timer 4 input capture, overflow and compare A
+	OCR4A = (F_CPU / 400);// ~ 400 Hz minimum frequency
+	TCCR4B = _BV(CS40) | _BV(ICES4);// start Timer 4, no prescaler and Input Capture Edge Select rising
+	TIFR4 = _BV(ICF4) | _BV(TOV4) | _BV(OCF4A);// clear pending interrupts so we don't get a bogus one
+	TIMSK4 = _BV(ICIE4) | _BV(TOIE4)| _BV(OCIE4A);// and enable interrupt on Timer 4 input capture, overflow and compare A
 
 }  // end of startTemperature
 
@@ -137,3 +143,5 @@ float SMT172_T4::getTime(void) {
 	// return the measuring time in seconds
 	return float(endCycle - startCycle) / float(F_CPU);
 }
+
+#endif
